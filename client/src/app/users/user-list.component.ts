@@ -51,6 +51,8 @@ export class UserListComponent implements OnInit, OnDestroy  {
    * in the GUI.
    */
   getUsersFromServer(): void {
+    // Effectively ignore any previous unresolved calls to get the
+    // users from the service (i.e., from the server).
     this.unsubscribeConditionally();
     // A user-list-component has a getUsersSubscription (which is a subscription)
     // that is paying attention to userService.getUsers (which is an Observable<User[]>)
@@ -100,13 +102,22 @@ export class UserListComponent implements OnInit, OnDestroy  {
     this.getUsersFromServer();
   }
 
+  /**
+   * When this component is destroyed, we should unsubscribe to any
+   * outstanding requests.
+   */
   ngOnDestroy(): void {
     // When we destroy the user-list-component, unsubscribe from that Observable<User[]>
     // This unsubscribing action allows the Observable to stop emitting events
-    // if we were the only ones paying attention (if all of the followers stop following, no need to tell us)
+    // if we were the only ones paying attention
+    // (i.e., if all of the followers stop following, no need to tell us)
     this.unsubscribeConditionally();
   }
 
+  /**
+   * Unsubscribe to any outstanding requests if there are any
+   * since this component wont' be around to display the results.
+   */
   unsubscribeConditionally(): void {
     if (this.getUsersSubscription) {
       this.getUsersSubscription.unsubscribe();
