@@ -9,7 +9,7 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { MockUserService } from 'src/testing/user.service.mock';
 import { AddUserComponent } from './add-user.component';
-import { UserService } from './user.service';
+import { UserService } from '../user.service';
 
 describe('AddUserComponent', () => {
   let addUserComponent: AddUserComponent;
