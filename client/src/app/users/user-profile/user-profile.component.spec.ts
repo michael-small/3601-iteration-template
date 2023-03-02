@@ -2,12 +2,12 @@ import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 import { MatCardModule } from '@angular/material/card';
 import { ActivatedRoute } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { ActivatedRouteStub } from '../../testing/activated-route-stub';
-import { MockUserService } from '../../testing/user.service.mock';
-import { User } from './user';
-import { UserCardComponent } from './user-card.component';
+import { ActivatedRouteStub } from '../../../testing/activated-route-stub';
+import { MockUserService } from '../../../testing/user.service.mock';
+import { User } from '../user';
+import { UserCardComponent } from '../user-card/user-card.component';
 import { UserProfileComponent } from './user-profile.component';
-import { UserService } from './user.service';
+import { UserService } from '../user.service';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 describe('UserProfileComponent', () => {
