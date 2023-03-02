@@ -19,7 +19,7 @@ import { UserService } from '../user.service';
 })
 
 export class UserFilterComponent implements OnInit, OnDestroy {
-  @Output() filteredUsersChange = new EventEmitter<User[]>();
+  @Output() readonly filteredUsersChange = new EventEmitter<User[]>();
   @Input() filteredUsers: User[];
   targetUserName: string;
   targetUserAge: number;
@@ -90,7 +90,6 @@ export class UserFilterComponent implements OnInit, OnDestroy {
   public updateFilter(): void {
     this.filteredUsers = this.userService.filterUsers(
       this.serverFilteredUsers, { name: this.targetUserName, company: this.targetUserCompany });
-    console.log(this.filteredUsers);
     this.filteredUsersChange.emit(this.filteredUsers);
   }
 
