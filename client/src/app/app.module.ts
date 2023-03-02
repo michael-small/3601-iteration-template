@@ -30,6 +30,7 @@ import { HomeComponent } from './home/home.component';
 import { UserCardComponent } from './users/user-card/user-card.component';
 import { UserListComponent } from './users/user-list/user-list.component';
 import { UserProfileComponent } from './users/user-profile/user-profile.component';
+import { UserFilterComponent } from './users/user-filter/user-filter.component';
 
 const MATERIAL_MODULES: any[] = [
   MatButtonModule,
@@ -58,6 +59,7 @@ const MATERIAL_MODULES: any[] = [
     UserCardComponent,
     UserProfileComponent,
     AddUserComponent,
+    UserFilterComponent,
   ],
   imports: [
     BrowserModule,

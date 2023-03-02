@@ -1,39 +1,33 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Subject, takeUntil } from 'rxjs';
-import { User, UserRole } from './user';
-import { UserService } from './user.service';
+import { User, UserRole } from '../user';
+import { UserService } from '../user.service';
 
 /**
- * A component that displays a list of users, either as a grid
- * of cards or as a vertical list.
- *
- * The component supports local filtering by name and/or company,
- * and remote filtering (i.e., filtering by the server) by
- * role and/or age. These choices are fairly arbitrary here,
+ * The component supports:
+ *  - local filtering (i.e., filtering by the client) by name and/or company,
+ *  - remote filtering (i.e., filtering by the server) by role and/or age.
+ * These choices are fairly arbitrary here,
  * but in "real" projects you want to think about where it
- * makes the most sense to do the filtering.
+ * makes the most sense to do each kind of filtering.
  */
 @Component({
-  selector: 'app-user-list-component',
-  templateUrl: 'user-list.component.html',
-  styleUrls: ['./user-list.component.scss'],
-  providers: []
+  selector: 'app-user-filter',
+  templateUrl: './user-filter.component.html',
+  styleUrls: ['./user-filter.component.scss']
 })
 
-export class UserListComponent implements OnInit, OnDestroy  {
-  // These are public so that tests can reference them (.spec.ts)
-  public serverFilteredUsers: User[];
-  public filteredUsers: User[];
+export class UserFilterComponent implements OnInit, OnDestroy {
+  @Output() filteredUsersChange = new EventEmitter<User[]>();
+  @Input() filteredUsers: User[];
+  targetUserName: string;
+  targetUserAge: number;
+  targetUserRole: UserRole;
+  targetUserCompany: string;
 
-  public userName: string;
-  public userAge: number;
-  public userRole: UserRole;
-  public userCompany: string;
-  public viewType: 'card' | 'list' = 'card';
-
+  private serverFilteredUsers: User[];
   private ngUnsubscribe = new Subject<void>();
-
 
   /**
    * This constructor injects both an instance of `UserService`
@@ -47,6 +41,10 @@ export class UserListComponent implements OnInit, OnDestroy  {
     // Nothing here – everything is in the injection parameters.
   }
 
+  ngOnInit(): void {
+    this.getUsersFromServer();
+  }
+
   /**
    * Get the users from the server, filtered by the role and age specified
    * in the GUI.
@@ -57,8 +55,8 @@ export class UserListComponent implements OnInit, OnDestroy  {
     // (for more on Observable, see: https://reactivex.io/documentation/observable.html)
     // and we are specifically watching for role and age whenever the User[] gets updated
     this.userService.getUsers({
-      role: this.userRole,
-      age: this.userAge
+      role: this.targetUserRole,
+      age: this.targetUserAge
     }).pipe(
       takeUntil(this.ngUnsubscribe)
     ).subscribe({
@@ -89,21 +87,11 @@ export class UserListComponent implements OnInit, OnDestroy  {
     });
   }
 
-  /**
-   * Called when the filtering information is changed in the GUI so we can
-   * get an updated list of `filteredUsers`.
-   */
   public updateFilter(): void {
     this.filteredUsers = this.userService.filterUsers(
-      this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
-  }
-
-  /**
-   * Starts an asynchronous operation to update the users list
-   *
-   */
-  ngOnInit(): void {
-    this.getUsersFromServer();
+      this.serverFilteredUsers, { name: this.targetUserName, company: this.targetUserCompany });
+    console.log(this.filteredUsers);
+    this.filteredUsersChange.emit(this.filteredUsers);
   }
 
   /**
@@ -114,5 +102,4 @@ export class UserListComponent implements OnInit, OnDestroy  {
     this.ngUnsubscribe.next();
     this.ngUnsubscribe.complete();
   }
-
 }

@@ -1,0 +1,44 @@
+
+<mat-card-content>
+
+  <div class="flex-row gap-8 flex-wrap">
+
+    <!-- Examples of filtering in Angular -->
+    <mat-form-field class="input-field">
+      <mat-label>Name</mat-label>
+      <input matInput data-test="userNameInput" placeholder="Filter by name"
+      [(ngModel)]="targetUserName" (input)="updateFilter()">
+      <mat-hint>Filtered on client</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="input-field">
+      <mat-label>Company</mat-label>
+      <input matInput data-test="userCompanyInput" placeholder="Filter by company"
+      [(ngModel)]="targetUserCompany" (input)="updateFilter()">
+      <mat-hint>Filtered on client</mat-hint>
+    </mat-form-field>
+  </div>
+
+  <div class="flex-row gap-8 flex-wrap">
+
+    <!-- Examples of filtering on the server -->
+    <mat-form-field class="input-field">
+      <mat-label>Age</mat-label>
+      <input matInput data-test="userAgeInput" type="number" placeholder="Filter by age"
+      min="0" max="200" [(ngModel)]="targetUserAge" (input)="getUsersFromServer()">
+      <mat-hint>Filtered on server</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field class="input-field">
+      <mat-label>Role</mat-label>
+      <mat-select (selectionChange)="getUsersFromServer()" [(ngModel)]="targetUserRole" data-test="userRoleSelect">
+        <mat-option>--</mat-option>
+        <mat-option value="admin">Admin</mat-option>
+        <mat-option value="editor">Editor</mat-option>
+        <mat-option value="viewer">Viewer</mat-option>
+      </mat-select>
+      <mat-hint>Filtered on server</mat-hint>
+    </mat-form-field>
+  </div>
+
+</mat-card-content>

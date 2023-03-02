@@ -14,11 +14,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { Observable } from 'rxjs';
-import { MockUserService } from '../../testing/user.service.mock';
-import { User } from './user';
-import { UserCardComponent } from './user-card.component';
-import { UserListComponent } from './user-list.component';
-import { UserService } from './user.service';
+import { MockUserService } from '../../../testing/user.service.mock';
+import { User } from '../user';
+import { UserFilterComponent } from './user-filter.component';
+import { UserService } from '../user.service';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -41,37 +40,37 @@ const COMMON_IMPORTS: unknown[] = [
   RouterTestingModule,
 ];
 
-describe('User list', () => {
+describe('User Filter can create a collection that:', () => {
 
-  let userList: UserListComponent;
-  let fixture: ComponentFixture<UserListComponent>;
+  let userFilterComponent: UserFilterComponent;
+  let fixture: ComponentFixture<UserFilterComponent>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [COMMON_IMPORTS],
-      declarations: [UserListComponent, UserCardComponent],
+      declarations: [UserFilterComponent],
       // providers:    [ UserService ]  // NO! Don't provide the real service!
       // Provide a test-double instead
       providers: [{ provide: UserService, useValue: new MockUserService() }]
     });
   });
 
-  // This constructs the `userList` (declared
+  // This constructs the `userFilterComponent` (declared
   // above) that will be used throughout the tests.
   beforeEach(waitForAsync(() => {
   // Compile all the components in the test bed
   // so that everything's ready to go.
     TestBed.compileComponents().then(() => {
-      /* Create a fixture of the UserListComponent. That
+      /* Create a fixture of the `UserFilterComponent`. That
        * allows us to get an instance of the component
-       * (userList, below) that we can control in
+       * (userFilterComponent, below) that we can control in
        * the tests.
        */
-      fixture = TestBed.createComponent(UserListComponent);
-      userList = fixture.componentInstance;
+      fixture = TestBed.createComponent(UserFilterComponent);
+      userFilterComponent = fixture.componentInstance;
       /* Tells Angular to sync the data bindings between
        * the model and the DOM. This ensures, e.g., that the
-       * `userList` component actually requests the list
+       * `userFilterComponent` actually requests the list
        * of users from the `MockUserService` so that it's
        * up to date before we start running tests on it.
        */
@@ -80,23 +79,23 @@ describe('User list', () => {
   }));
 
   it('contains all the users', () => {
-    expect(userList.serverFilteredUsers.length).toBe(3);
+    expect(userFilterComponent.filteredUsers.length).toBe(3);
   });
 
   it('contains a user named \'Chris\'', () => {
-    expect(userList.serverFilteredUsers.some((user: User) => user.name === 'Chris')).toBe(true);
+    expect(userFilterComponent.filteredUsers.some((user: User) => user.name === 'Chris')).toBe(true);
   });
 
-  it('contain a user named \'Jamie\'', () => {
-    expect(userList.serverFilteredUsers.some((user: User) => user.name === 'Jamie')).toBe(true);
+  it('contains a user named \'Jamie\'', () => {
+    expect(userFilterComponent.filteredUsers.some((user: User) => user.name === 'Jamie')).toBe(true);
   });
 
   it('doesn\'t contain a user named \'Santa\'', () => {
-    expect(userList.serverFilteredUsers.some((user: User) => user.name === 'Santa')).toBe(false);
+    expect(userFilterComponent.filteredUsers.some((user: User) => user.name === 'Santa')).toBe(false);
   });
 
   it('has two users that are 37 years old', () => {
-    expect(userList.serverFilteredUsers.filter((user: User) => user.age === 37).length).toBe(2);
+    expect(userFilterComponent.filteredUsers.filter((user: User) => user.age === 37).length).toBe(2);
   });
 });
 
@@ -106,9 +105,9 @@ describe('User list', () => {
  * testing. Here we set up the mock UserService (userServiceStub) so that
  * _always_ fails (throws an exception) when you request a set of users.
  */
-describe('Misbehaving User List', () => {
-  let userList: UserListComponent;
-  let fixture: ComponentFixture<UserListComponent>;
+describe('Misbehaving User Filter', () => {
+  let userFilterComponent: UserFilterComponent;
+  let fixture: ComponentFixture<UserFilterComponent>;
 
   let userServiceStub: {
     getUsers: () => Observable<User[]>;
@@ -128,7 +127,7 @@ describe('Misbehaving User List', () => {
 
     TestBed.configureTestingModule({
       imports: [COMMON_IMPORTS],
-      declarations: [UserListComponent],
+      declarations: [UserFilterComponent],
       // providers:    [ UserService ]  // NO! Don't provide the real service!
       // Provide a test-double instead
       providers: [{ provide: UserService, useValue: userServiceStub }]
@@ -139,8 +138,8 @@ describe('Misbehaving User List', () => {
   // below.
   beforeEach(waitForAsync(() => {
     TestBed.compileComponents().then(() => {
-      fixture = TestBed.createComponent(UserListComponent);
-      userList = fixture.componentInstance;
+      fixture = TestBed.createComponent(UserFilterComponent);
+      userFilterComponent = fixture.componentInstance;
       fixture.detectChanges();
     });
   }));
@@ -150,6 +149,6 @@ describe('Misbehaving User List', () => {
     // Observables that then throw exceptions, we don't expect the component
     // to be able to get a list of users, and serverFilteredUsers should
     // be undefined.
-    expect(userList.serverFilteredUsers).toBeUndefined();
+    expect(userFilterComponent.filteredUsers).toBeUndefined();
   });
 });
