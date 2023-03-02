@@ -28,7 +28,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { HomeComponent } from './home/home.component';
 import { UserCardComponent } from './users/user-card/user-card.component';
-import { UserListComponent } from './users/user-list.component';
+import { UserListComponent } from './users/user-list/user-list.component';
 import { UserProfileComponent } from './users/user-profile/user-profile.component';
 
 const MATERIAL_MODULES: any[] = [
