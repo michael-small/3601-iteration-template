@@ -12,20 +12,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Cache Node modules
-      uses: actions/cache@v3
+      uses: actions/checkout@v4
+    - name: Use Node.js 18
+      uses: actions/setup-node@v4
       with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Use Node.js 16
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: ./client/package-lock.json
 
     - name: Install dependencies (npm ci)
       run: npm ci
@@ -40,20 +33,13 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
-
-    - name: Cache Node modules
-      uses: actions/cache@v3
+      uses: actions/checkout@v4
+    - name: Use Node.js 18
+      uses: actions/setup-node@v4
       with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Use Node.js 16
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
+        node-version: 18
+        cache: 'npm'
+        cache-dependency-path: ./client/package-lock.json
 
     - name: Install dependencies (npm ci)
       run: npm ci
