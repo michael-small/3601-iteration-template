@@ -15,7 +15,10 @@
       "es2020",
       "dom"
     ],
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "strictNullChecks": true,
+    // "strict": true,
+    "noImplicitAny": true
   },
   "exclude": ["./cypress.config.ts"],
   "angularCompilerOptions": {
