@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
-import { User, UserRole } from './user';
 import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
+import { User, validateUser } from './user';
+import { UserRole } from "./user-role";
 
 /**
  * Service that provides the interface for getting information
@@ -27,7 +28,7 @@ export class UserService {
   // of `HttpClient` in the unit tests so they don't have to
   // make "real" HTTP calls to a server that might not exist or
   // might not be currently running.
-  constructor(private httpClient: HttpClient) {
+  constructor(private httpClient: HttpClient | null) {
   }
 
   /**
@@ -65,7 +66,7 @@ export class UserService {
     }
     // Send the HTTP GET request with the given URL and parameters.
     // That will return the desired `Observable<User[]>`.
-    return this.httpClient.get<User[]>(this.userUrl, {
+    return this.httpClient!.get<User[]>(this.userUrl, {
       params: httpParams,
     });
   }
@@ -78,7 +79,15 @@ export class UserService {
    */
   getUserById(id: string): Observable<User> {
     // The input to get could also be written as (this.userUrl + '/' + id)
-    return this.httpClient.get<User>(`${this.userUrl}/${id}`);
+    return this.httpClient!.get<User>(`${this.userUrl}/${id}`)
+      .pipe(map((user) => {
+        // Validate that `user` matches the `User` schema.
+        if (validateUser(user)) {
+          return user;
+        } else {
+          throw new Error('User supplied by the server failed to validate: ' + user);
+        }
+      }));
   }
 
   /**
@@ -100,13 +109,13 @@ export class UserService {
     // Filter by name
     if (filters.name) {
       filters.name = filters.name.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => user.name.toLowerCase().indexOf(filters.name) !== -1);
+      filteredUsers = filteredUsers.filter(user => user.name.toLowerCase().indexOf(filters.name!) !== -1);
     }
 
     // Filter by company
     if (filters.company) {
       filters.company = filters.company.toLowerCase();
-      filteredUsers = filteredUsers.filter(user => user.company.toLowerCase().indexOf(filters.company) !== -1);
+      filteredUsers = filteredUsers.filter(user => user.company.toLowerCase().indexOf(filters.company!) !== -1);
     }
 
     return filteredUsers;
@@ -114,6 +123,6 @@ export class UserService {
 
   addUser(newUser: Partial<User>): Observable<string> {
     // Send post request to add a new user with the user data as the body.
-    return this.httpClient.post<{id: string}>(this.userUrl, newUser).pipe(map(res => res.id));
+    return this.httpClient!.post<{id: string}>(this.userUrl, newUser).pipe(map(res => res.id));
   }
 }
