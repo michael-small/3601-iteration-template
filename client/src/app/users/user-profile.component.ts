@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, DestroyRef } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { User } from './user';
@@ -6,7 +6,7 @@ import { UserService } from './user.service';
 import { Subject } from 'rxjs';
 import { map, switchMap, takeUntil } from 'rxjs/operators';
 import { UserCardComponent } from './user-card.component';
-
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MatCardModule } from '@angular/material/card';
 
 @Component({
@@ -16,20 +16,15 @@ import { MatCardModule } from '@angular/material/card';
   standalone: true,
   imports: [UserCardComponent, MatCardModule],
 })
-export class UserProfileComponent implements OnInit, OnDestroy {
+export class UserProfileComponent implements OnInit {
   user: User;
   error: { help: string; httpResponse: string; message: string };
-
-  // This `Subject` will only ever emit one (empty) value when
-  // `ngOnDestroy()` is called, i.e., when this component is
-  // destroyed. That can be used ot tell any subscriptions to
-  // terminate, allowing the system to free up their resources (like memory).
-  private ngUnsubscribe = new Subject<void>();
 
   constructor(
     private snackBar: MatSnackBar,
     private route: ActivatedRoute,
-    private userService: UserService
+    private userService: UserService,
+    private destroy: DestroyRef
   ) {}
 
   // TODO - add comments back
@@ -41,7 +36,7 @@ export class UserProfileComponent implements OnInit, OnDestroy {
           return paramMap.get('id');
         }),
         switchMap((id: string) => this.userService.getUserById(id)),
-        takeUntil(this.ngUnsubscribe)
+        takeUntilDestroyed(this.destroy)
       )
       .subscribe({
         next: (user) => {
@@ -57,11 +52,5 @@ export class UserProfileComponent implements OnInit, OnDestroy {
         },
         // complete: () => console.log('We got a new user, and we are done!'),
       });
-  }
-
-  // TODO - add comments back
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
   }
 }
