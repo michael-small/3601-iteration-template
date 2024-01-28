@@ -9,14 +9,22 @@ import { AddUserComponent } from './users/add-user.component';
 // If 'users/:id' came first, it would accidentally catch requests to
 // 'users/new'; the router would just think that the string 'new' is a user ID.
 const routes: Routes = [
-  {path: '', component: HomeComponent, title: 'Home'},
-  {path: 'users', component: UserListComponent, title: 'Users'},
-  {path: 'users/new', component: AddUserComponent, title: 'Add User'},
-  {path: 'users/:id', component: UserProfileComponent, title: 'User Profile'}
+  { path: '', component: HomeComponent, title: 'Home' },
+  { path: 'users', component: UserListComponent, title: 'Users' },
+  { path: 'users/new', component: AddUserComponent, title: 'Add User' },
+  {
+    path: 'users/:id',
+    component: UserProfileComponent,
+    title: 'User Profile',
+  },
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  imports: [
+    RouterModule.forRoot(routes, {
+      bindToComponentInputs: true,
+    }),
+  ],
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
