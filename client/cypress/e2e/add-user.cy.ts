@@ -37,7 +37,11 @@ describe('Add user', () => {
     // Some more tests for various invalid name inputs
     page.getFormField('name').type('J').blur();
     cy.get('[data-test=nameError]').should('exist').and('be.visible');
-    page.getFormField('name').clear().type('This is a very long name that goes beyond the 50 character limit').blur();
+    page
+      .getFormField('name')
+      .clear()
+      .type('This is a very long name that goes beyond the 50 character limit')
+      .blur();
     cy.get('[data-test=nameError]').should('exist').and('be.visible');
     // Entering a valid name should remove the error.
     page.getFormField('name').clear().type('John Smith').blur();
@@ -75,19 +79,18 @@ describe('Add user', () => {
   });
 
   describe('Adding a new user', () => {
-
     beforeEach(() => {
       cy.task('seed:database');
     });
 
     it('Should go to the right page, and have the right info', () => {
       const user: User = {
-        _id: null,
+        id: null,
         name: 'Test User',
         age: 30,
         company: 'Test Company',
         email: 'test@example.com',
-        role: 'editor'
+        role: 'editor',
       };
 
       page.addUser(user);
@@ -110,18 +113,20 @@ describe('Add user', () => {
 
     it('Should fail with no company', () => {
       const user: User = {
-        _id: null,
+        id: null,
         name: 'Test User',
         age: 30,
         company: null, // The company being set to null means nothing will be typed for it
         email: 'test@example.com',
-        role: 'editor'
+        role: 'editor',
       };
 
       page.addUser(user);
 
       // We should get an error message
-      page.getSnackBar().should('contain', `Problem contacting the server – Error Code:`);
+      page
+        .getSnackBar()
+        .should('contain', `Problem contacting the server – Error Code:`);
 
       // We should have stayed on the new user page
       cy.url()
@@ -135,5 +140,4 @@ describe('Add user', () => {
       page.getFormField('role').should('contain', 'Editor');
     });
   });
-
 });

@@ -10,26 +10,22 @@ describe('UserCardComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-    imports: [
-        BrowserAnimationsModule,
-        MatCardModule,
-        UserCardComponent
-    ]
-})
-    .compileComponents();
+      imports: [BrowserAnimationsModule, MatCardModule, UserCardComponent],
+    }).compileComponents();
   }));
 
   beforeEach(() => {
     fixture = TestBed.createComponent(UserCardComponent);
     component = fixture.componentInstance;
     component.user = {
-      _id: 'chris_id',
+      id: 'chris_id',
       name: 'Chris',
       age: 25,
       company: 'UMM',
       email: 'chris@this.that',
       role: 'admin',
-      avatar: 'https://gravatar.com/avatar/8c9616d6cc5de638ea6920fb5d65fc6c?d=identicon'
+      avatar:
+        'https://gravatar.com/avatar/8c9616d6cc5de638ea6920fb5d65fc6c?d=identicon',
     };
     fixture.detectChanges();
   });

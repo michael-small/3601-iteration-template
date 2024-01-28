@@ -18,22 +18,22 @@ describe('UserProfileComponent', () => {
   const activatedRoute: ActivatedRouteStub = new ActivatedRouteStub({
     // Using the constructor here lets us try that branch in `activated-route-stub.ts`
     // and then we can choose a new parameter map in the tests if we choose
-    id : chrisId
+    id: chrisId,
   });
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-    imports: [
+      imports: [
         RouterTestingModule,
         MatCardModule,
-        UserProfileComponent, UserCardComponent
-    ],
-    providers: [
+        UserProfileComponent,
+        UserCardComponent,
+      ],
+      providers: [
         { provide: UserService, useValue: mockUserService },
-        { provide: ActivatedRoute, useValue: activatedRoute }
-    ]
-})
-      .compileComponents();
+        { provide: ActivatedRoute, useValue: activatedRoute },
+      ],
+    }).compileComponents();
   }));
 
   beforeEach(() => {
@@ -51,7 +51,7 @@ describe('UserProfileComponent', () => {
     // Setting this should cause anyone subscribing to the paramMap
     // to update. Our `UserProfileComponent` subscribes to that, so
     // it should update right away.
-    activatedRoute.setParamMap({ id: expectedUser._id });
+    activatedRoute.setParamMap({ id: expectedUser.id });
     expect(component.user).toEqual(expectedUser);
   });
 
@@ -60,12 +60,12 @@ describe('UserProfileComponent', () => {
     // Setting this should cause anyone subscribing to the paramMap
     // to update. Our `UserProfileComponent` subscribes to that, so
     // it should update right away.
-    activatedRoute.setParamMap({ id: expectedUser._id });
+    activatedRoute.setParamMap({ id: expectedUser.id });
     expect(component.user).toEqual(expectedUser);
 
     // Changing the paramMap should update the displayed user profile.
     expectedUser = MockUserService.testUsers[1];
-    activatedRoute.setParamMap({ id: expectedUser._id });
+    activatedRoute.setParamMap({ id: expectedUser.id });
     expect(component.user).toEqual(expectedUser);
   });
 
@@ -81,15 +81,18 @@ describe('UserProfileComponent', () => {
   it('should set error data on observable error', () => {
     activatedRoute.setParamMap({ id: chrisId });
 
-    const mockError = { message: 'Test Error', error: { title: 'Error Title' } };
+    const mockError = {
+      message: 'Test Error',
+      error: { title: 'Error Title' },
+    };
 
     // const errorResponse = { status: 500, message: 'Server error' };
     // "Spy" on the `.addUser()` method in the user service. Here we basically
     // intercept any calls to that method and return the error response
     // defined above.
-    const getUserSpy = spyOn(mockUserService, 'getUserById')
-      .and
-      .returnValue(throwError(() => mockError));
+    const getUserSpy = spyOn(mockUserService, 'getUserById').and.returnValue(
+      throwError(() => mockError)
+    );
 
     // component.user = throwError(() => mockError) as Observable<User>;
 
