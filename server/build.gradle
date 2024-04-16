@@ -32,13 +32,13 @@ dependencies {
   implementation 'io.javalin:javalin:5.6.3'
 
   // Mongo DB Driver for Java
-  implementation 'org.mongodb:mongodb-driver-sync:5.0.0'
+  implementation 'org.mongodb:mongodb-driver-sync:5.0.1'
 
   // MongoJack, MongoDB integration for Jackson
-  implementation 'org.mongojack:mongojack:4.11.0'
+  implementation 'org.mongojack:mongojack:5.0.0'
 
   // Simple Logging Facade for Java
-  implementation 'org.slf4j:slf4j-simple:2.0.12'
+  implementation 'org.slf4j:slf4j-simple:2.0.13'
 
   // JUnit Jupiter API for testing.
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
