@@ -714,40 +714,55 @@ class UserControllerSpec {
     assertEquals(2, ohmnet.count);
   }
 
-  // @Test
-  // void addUser() throws IOException {
-  //   String testNewUser = """
-  //       {
-  //         "name": "Test User",
-  //         "age": 25,
-  //         "company": "testers",
-  //         "email": "test@example.com",
-  //         "role": "viewer"
-  //       }
-  //       """;
-  //   when(ctx.bodyValidator(User.class))
-  //       .then(value -> new BodyValidator<User>(testNewUser, User.class, javalinJackson));
+  @Test
+  void addUser() throws IOException {
+    // Create a new user to add
+    User newUser = new User();
+    newUser.name = "Test User";
+    newUser.age = 25;
+    newUser.company = "testers";
+    newUser.email = "test@example.com";
+    newUser.role = "viewer";
 
-  //   userController.addNewUser(ctx);
-  //   verify(ctx).json(mapCaptor.capture());
+    // Use `javalinJackson` to convert the `User` object to a JSON string representing that user.
+    // This would be equivalent to:
+    //   String testNewUser = """
+    //       {
+    //         "name": "Test User",
+    //         "age": 25,
+    //         "company": "testers",
+    //         "email": "invalidemail",
+    //         "role": "viewer"
+    //       }
+    //       """;
+    // but using `javalinJackson` to generate the JSON avoids repeating all the field values,
+    // which is then less error prone.
+    String newUserJson = javalinJackson.toJsonString(newUser, User.class);
 
-  //   // Our status should be 201, i.e., our new user was successfully created.
-  //   verify(ctx).status(HttpStatus.CREATED);
+    when(ctx.bodyValidator(User.class)).thenReturn(new BodyValidator<User>(newUserJson, User.class, () -> newUser));
 
-  //   // Verify that the user was added to the database with the correct ID
-  //   Document addedUser = db.getCollection("users")
-  //       .find(eq("_id", new ObjectId(mapCaptor.getValue().get("id")))).first();
+    userController.addNewUser(ctx);
+    verify(ctx).json(mapCaptor.capture());
 
-  //   // Successfully adding the user should return the newly generated, non-empty
-  //   // MongoDB ID for that user.
-  //   assertNotEquals("", addedUser.get("_id"));
-  //   assertEquals("Test User", addedUser.get("name"));
-  //   assertEquals(25, addedUser.get(UserController.AGE_KEY));
-  //   assertEquals("testers", addedUser.get(UserController.COMPANY_KEY));
-  //   assertEquals("test@example.com", addedUser.get("email"));
-  //   assertEquals("viewer", addedUser.get(UserController.ROLE_KEY));
-  //   assertNotNull(addedUser.get("avatar"));
-  // }
+    // Our status should be 201, i.e., our new user was successfully created.
+    verify(ctx).status(HttpStatus.CREATED);
+
+    // Verify that the user was added to the database with the correct ID
+    Document addedUser = db.getCollection("users")
+        .find(eq("_id", new ObjectId(mapCaptor.getValue().get("id")))).first();
+
+    // Successfully adding the user should return the newly generated, non-empty
+    // MongoDB ID for that user.
+    assertNotEquals("", addedUser.get("_id"));
+    // The new user in the database (`addedUser`) should have the same
+    // field values as the user we asked it to add (`newuser`).
+    assertEquals(newUser.name, addedUser.get("name"));
+    assertEquals(newUser.age, addedUser.get(UserController.AGE_KEY));
+    assertEquals(newUser.company, addedUser.get(UserController.COMPANY_KEY));
+    assertEquals(newUser.email, addedUser.get("email"));
+    assertEquals(newUser.role, addedUser.get(UserController.ROLE_KEY));
+    assertNotNull(addedUser.get("avatar"));
+  }
 
   // @Test
   // void addInvalidEmailUser() throws IOException {
