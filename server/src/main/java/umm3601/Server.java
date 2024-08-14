@@ -10,7 +10,6 @@ import com.mongodb.client.MongoClients;
 import org.bson.UuidRepresentation;
 
 import io.javalin.Javalin;
-import io.javalin.plugin.bundled.RouteOverviewPlugin;
 import io.javalin.http.InternalServerErrorResponse;
 
 /**
