@@ -485,43 +485,43 @@ class UserControllerSpec {
     assert(exceptionMessage.contains(negative_age_string));
   }
 
-  // @Test
-  // void canGetUsersWithCompany() throws IOException {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {"OHMNET"}));
-  //   queryParams.put(UserController.SORT_ORDER_KEY, Arrays.asList(new String[] {"desc"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn("OHMNET");
-  //   when(ctx.queryParam(UserController.SORT_ORDER_KEY)).thenReturn("desc");
+  @Test
+  void canGetUsersWithCompany() throws IOException {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {"OHMNET"}));
+    queryParams.put(UserController.SORT_ORDER_KEY, Arrays.asList(new String[] {"desc"}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn("OHMNET");
+    when(ctx.queryParam(UserController.SORT_ORDER_KEY)).thenReturn("desc");
 
-  //   userController.getUsers(ctx);
+    userController.getUsers(ctx);
 
-  //   verify(ctx).json(userArrayListCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
+    verify(ctx).json(userArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
 
-  //   // Confirm that all the users passed to `json` work for OHMNET.
-  //   for (User user : userArrayListCaptor.getValue()) {
-  //     assertEquals("OHMNET", user.company);
-  //   }
-  // }
+    // Confirm that all the users passed to `json` work for OHMNET.
+    for (User user : userArrayListCaptor.getValue()) {
+      assertEquals("OHMNET", user.company);
+    }
+  }
 
-  // @Test
-  // void canGetUsersWithCompanyLowercase() throws IOException {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {"ohm"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn("ohm");
+  @Test
+  void canGetUsersWithCompanyLowercase() throws IOException {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {"ohm"}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn("ohm");
 
-  //   userController.getUsers(ctx);
+    userController.getUsers(ctx);
 
-  //   verify(ctx).json(userArrayListCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
+    verify(ctx).json(userArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
 
-  //   // Confirm that all the users passed to `json` work for OHMNET.
-  //   for (User user : userArrayListCaptor.getValue()) {
-  //     assertEquals("OHMNET", user.company);
-  //   }
-  // }
+    // Confirm that all the users passed to `json` work for OHMNET.
+    for (User user : userArrayListCaptor.getValue()) {
+      assertEquals("OHMNET", user.company);
+    }
+  }
 
   // @Test
   // void getUsersByRole() throws IOException {
@@ -559,147 +559,147 @@ class UserControllerSpec {
   //   }
   // }
 
-  // @Test
-  // void getUserWithExistentId() throws IOException {
-  //   String id = samsId.toHexString();
-  //   when(ctx.pathParam("id")).thenReturn(id);
+  @Test
+  void getUserWithExistentId() throws IOException {
+    String id = samsId.toHexString();
+    when(ctx.pathParam("id")).thenReturn(id);
 
-  //   userController.getUser(ctx);
+    userController.getUser(ctx);
 
-  //   verify(ctx).json(userCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
-  //   assertEquals("Sam", userCaptor.getValue().name);
-  //   assertEquals(samsId.toHexString(), userCaptor.getValue()._id);
-  // }
+    verify(ctx).json(userCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+    assertEquals("Sam", userCaptor.getValue().name);
+    assertEquals(samsId.toHexString(), userCaptor.getValue()._id);
+  }
 
-  // @Test
-  // void getUserWithBadId() throws IOException {
-  //   when(ctx.pathParam("id")).thenReturn("bad");
+  @Test
+  void getUserWithBadId() throws IOException {
+    when(ctx.pathParam("id")).thenReturn("bad");
 
-  //   Throwable exception = assertThrows(BadRequestResponse.class, () -> {
-  //     userController.getUser(ctx);
-  //   });
+    Throwable exception = assertThrows(BadRequestResponse.class, () -> {
+      userController.getUser(ctx);
+    });
 
-  //   assertEquals("The requested user id wasn't a legal Mongo Object ID.", exception.getMessage());
-  // }
+    assertEquals("The requested user id wasn't a legal Mongo Object ID.", exception.getMessage());
+  }
 
-  // @Test
-  // void getUserWithNonexistentId() throws IOException {
-  //   String id = "588935f5c668650dc77df581";
-  //   when(ctx.pathParam("id")).thenReturn(id);
+  @Test
+  void getUserWithNonexistentId() throws IOException {
+    String id = "588935f5c668650dc77df581";
+    when(ctx.pathParam("id")).thenReturn(id);
 
-  //   Throwable exception = assertThrows(NotFoundResponse.class, () -> {
-  //     userController.getUser(ctx);
-  //   });
+    Throwable exception = assertThrows(NotFoundResponse.class, () -> {
+      userController.getUser(ctx);
+    });
 
-  //   assertEquals("The requested user was not found", exception.getMessage());
-  // }
+    assertEquals("The requested user was not found", exception.getMessage());
+  }
 
-  // @Captor
-  // private ArgumentCaptor<ArrayList<UserByCompany>> userByCompanyListCaptor;
+  @Captor
+  private ArgumentCaptor<ArrayList<UserByCompany>> userByCompanyListCaptor;
 
-  // @Test
-  // void testGetUsersGroupedByCompany() {
-  //   when(ctx.queryParam("sortBy")).thenReturn("company");
-  //   when(ctx.queryParam("sortOrder")).thenReturn("asc");
-  //   userController.getUsersGroupedByCompany(ctx);
+  @Test
+  void testGetUsersGroupedByCompany() {
+    when(ctx.queryParam("sortBy")).thenReturn("company");
+    when(ctx.queryParam("sortOrder")).thenReturn("asc");
+    userController.getUsersGroupedByCompany(ctx);
 
-  //   // Capture the argument to `ctx.json()`
-  //   verify(ctx).json(userByCompanyListCaptor.capture());
+    // Capture the argument to `ctx.json()`
+    verify(ctx).json(userByCompanyListCaptor.capture());
 
-  //   // Get the value that was passed to `ctx.json()`
-  //   ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
+    // Get the value that was passed to `ctx.json()`
+    ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
 
-  //   // There are 3 companies in the test data, so we should have 3 entries in the
-  //   // result.
-  //   assertEquals(3, result.size());
+    // There are 3 companies in the test data, so we should have 3 entries in the
+    // result.
+    assertEquals(3, result.size());
 
-  //   // The companies should be in alphabetical order by company name,
-  //   // and with user counts of 1, 2, and 1, respectively.
-  //   UserByCompany ibm = result.get(0);
-  //   assertEquals("IBM", ibm._id);
-  //   assertEquals(1, ibm.count);
-  //   UserByCompany ohmnet = result.get(1);
-  //   assertEquals("OHMNET", ohmnet._id);
-  //   assertEquals(2, ohmnet.count);
-  //   UserByCompany umm = result.get(2);
-  //   assertEquals("UMM", umm._id);
-  //   assertEquals(1, umm.count);
+    // The companies should be in alphabetical order by company name,
+    // and with user counts of 1, 2, and 1, respectively.
+    UserByCompany ibm = result.get(0);
+    assertEquals("IBM", ibm._id);
+    assertEquals(1, ibm.count);
+    UserByCompany ohmnet = result.get(1);
+    assertEquals("OHMNET", ohmnet._id);
+    assertEquals(2, ohmnet.count);
+    UserByCompany umm = result.get(2);
+    assertEquals("UMM", umm._id);
+    assertEquals(1, umm.count);
 
-  //   // The users for OHMNET should be Jamie and Sam, although we don't
-  //   // know what order they'll be in.
-  //   assertEquals(2, ohmnet.users.size());
-  //   assertTrue(ohmnet.users.get(0).name.equals("Jamie") || ohmnet.users.get(0).name.equals("Sam"),
-  //       "First user should have name 'Jamie' or 'Sam'");
-  //   assertTrue(ohmnet.users.get(1).name.equals("Jamie") || ohmnet.users.get(1).name.equals("Sam"),
-  //       "Second user should have name 'Jamie' or 'Sam'");
-  // }
+    // The users for OHMNET should be Jamie and Sam, although we don't
+    // know what order they'll be in.
+    assertEquals(2, ohmnet.users.size());
+    assertTrue(ohmnet.users.get(0).name.equals("Jamie") || ohmnet.users.get(0).name.equals("Sam"),
+        "First user should have name 'Jamie' or 'Sam'");
+    assertTrue(ohmnet.users.get(1).name.equals("Jamie") || ohmnet.users.get(1).name.equals("Sam"),
+        "Second user should have name 'Jamie' or 'Sam'");
+  }
 
-  // @Test
-  // void testGetUsersGroupedByCompanyDescending() {
-  //   when(ctx.queryParam("sortBy")).thenReturn("company");
-  //   when(ctx.queryParam("sortOrder")).thenReturn("desc");
-  //   userController.getUsersGroupedByCompany(ctx);
+  @Test
+  void testGetUsersGroupedByCompanyDescending() {
+    when(ctx.queryParam("sortBy")).thenReturn("company");
+    when(ctx.queryParam("sortOrder")).thenReturn("desc");
+    userController.getUsersGroupedByCompany(ctx);
 
-  //   // Capture the argument to `ctx.json()`
-  //   verify(ctx).json(userByCompanyListCaptor.capture());
+    // Capture the argument to `ctx.json()`
+    verify(ctx).json(userByCompanyListCaptor.capture());
 
-  //   // Get the value that was passed to `ctx.json()`
-  //   ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
+    // Get the value that was passed to `ctx.json()`
+    ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
 
-  //   // There are 3 companies in the test data, so we should have 3 entries in the
-  //   // result.
-  //   assertEquals(3, result.size());
+    // There are 3 companies in the test data, so we should have 3 entries in the
+    // result.
+    assertEquals(3, result.size());
 
-  //   // The companies should be in reverse alphabetical order by company name,
-  //   // and with user counts of 1, 2, and 1, respectively.
-  //   UserByCompany umm = result.get(0);
-  //   assertEquals("UMM", umm._id);
-  //   assertEquals(1, umm.count);
-  //   UserByCompany ohmnet = result.get(1);
-  //   assertEquals("OHMNET", ohmnet._id);
-  //   assertEquals(2, ohmnet.count);
-  //   UserByCompany ibm = result.get(2);
-  //   assertEquals("IBM", ibm._id);
-  //   assertEquals(1, ibm.count);
-  // }
+    // The companies should be in reverse alphabetical order by company name,
+    // and with user counts of 1, 2, and 1, respectively.
+    UserByCompany umm = result.get(0);
+    assertEquals("UMM", umm._id);
+    assertEquals(1, umm.count);
+    UserByCompany ohmnet = result.get(1);
+    assertEquals("OHMNET", ohmnet._id);
+    assertEquals(2, ohmnet.count);
+    UserByCompany ibm = result.get(2);
+    assertEquals("IBM", ibm._id);
+    assertEquals(1, ibm.count);
+  }
 
-  // @Test
-  // void testGetUsersGroupedByCompanyOrderedByCount() {
-  //   when(ctx.queryParam("sortBy")).thenReturn("count");
-  //   when(ctx.queryParam("sortOrder")).thenReturn("asc");
-  //   userController.getUsersGroupedByCompany(ctx);
+  @Test
+  void testGetUsersGroupedByCompanyOrderedByCount() {
+    when(ctx.queryParam("sortBy")).thenReturn("count");
+    when(ctx.queryParam("sortOrder")).thenReturn("asc");
+    userController.getUsersGroupedByCompany(ctx);
 
-  //   // Capture the argument to `ctx.json()`
-  //   verify(ctx).json(userByCompanyListCaptor.capture());
+    // Capture the argument to `ctx.json()`
+    verify(ctx).json(userByCompanyListCaptor.capture());
 
-  //   // Get the value that was passed to `ctx.json()`
-  //   ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
+    // Get the value that was passed to `ctx.json()`
+    ArrayList<UserByCompany> result = userByCompanyListCaptor.getValue();
 
-  //   // There are 3 companies in the test data, so we should have 3 entries in the
-  //   // result.
-  //   assertEquals(3, result.size());
+    // There are 3 companies in the test data, so we should have 3 entries in the
+    // result.
+    assertEquals(3, result.size());
 
-  //   // The companies should be in order by user count, and with counts of 1, 1, and
-  //   // 2,
-  //   // respectively. We don't know which order "IBM" and "UMM" will be in, since
-  //   // they
-  //   // both have a count of 1. So we'll get them both and then swap them if
-  //   // necessary.
-  //   UserByCompany ibm = result.get(0);
-  //   UserByCompany umm = result.get(1);
-  //   if (ibm._id.equals("UMM")) {
-  //     umm = result.get(0);
-  //     ibm = result.get(1);
-  //   }
-  //   UserByCompany ohmnet = result.get(2);
-  //   assertEquals("IBM", ibm._id);
-  //   assertEquals(1, ibm.count);
-  //   assertEquals("UMM", umm._id);
-  //   assertEquals(1, umm.count);
-  //   assertEquals("OHMNET", ohmnet._id);
-  //   assertEquals(2, ohmnet.count);
-  // }
+    // The companies should be in order by user count, and with counts of 1, 1, and
+    // 2,
+    // respectively. We don't know which order "IBM" and "UMM" will be in, since
+    // they
+    // both have a count of 1. So we'll get them both and then swap them if
+    // necessary.
+    UserByCompany ibm = result.get(0);
+    UserByCompany umm = result.get(1);
+    if (ibm._id.equals("UMM")) {
+      umm = result.get(0);
+      ibm = result.get(1);
+    }
+    UserByCompany ohmnet = result.get(2);
+    assertEquals("IBM", ibm._id);
+    assertEquals(1, ibm.count);
+    assertEquals("UMM", umm._id);
+    assertEquals(1, umm.count);
+    assertEquals("OHMNET", ohmnet._id);
+    assertEquals(2, ohmnet.count);
+  }
 
   // @Test
   // void addUser() throws IOException {
