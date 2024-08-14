@@ -358,7 +358,7 @@ class UserControllerSpec {
         for (User user : users) {
           assertEquals(37, user.age);
         }
-        assertEquals(users.size(), 2);
+        assertEquals(2, users.size());
         return true;
       }
     }));
