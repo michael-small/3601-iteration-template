@@ -266,6 +266,9 @@ class UserControllerSpec {
     // When the code being tested calls `ctx.queryParamMap()` return the
     // the `queryParams` map we just built.
     when(ctx.queryParamMap()).thenReturn(queryParams);
+    // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+    // `target_age_string`.
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(target_age_string);
 
     // Create a validator that confirms that when we ask for the value associated with
     // `AGE_KEY` _as an integer_, we get back the integer value 37.
@@ -326,6 +329,9 @@ class UserControllerSpec {
     // "?age=37" query.
     String target_age_string = "37";
     when(ctx.queryParamMap()).thenReturn(Map.of(UserController.AGE_KEY, List.of(target_age_string)));
+    // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+    // `target_age_string`.
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(target_age_string);
 
     // Create a validator that confirms that when we ask for the value associated with
     // `AGE_KEY` _as an integer_, we get back the integer value 37.
@@ -357,68 +363,127 @@ class UserControllerSpec {
     }));
   }
 
-  // /**
-  //  * Test that if the user sends a request with an illegal value in
-  //  * the age field (i.e., something that can't be parsed to a number)
-  //  * we get a reasonable error code back.
-  //  */
-  // @Test
-  // void respondsAppropriatelyToNonNumericAge() {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {"bad"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class))
-  //       .thenReturn(Validator.create(Integer.class, "bad", UserController.AGE_KEY));
+  /**
+   * Test that if the user sends a request with an illegal value in
+   * the age field (i.e., something that can't be parsed to a number)
+   * we get a reasonable error back.
+   */
+  @Test
+  void respondsAppropriatelyToNonNumericAge() {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    String illegal_integer_string = "bad integer string";
+    queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {illegal_integer_string}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+    // `illegal_integer_string`.
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(illegal_integer_string);
 
-  //   // This should now throw a `ValidationException` because
-  //   // our request has an age that can't be parsed to a number,
-  //   // but I don't yet know how to make the message be anything specific
-  //   assertThrows(ValidationException.class, () -> {
-  //     userController.getUsers(ctx);
-  //   });
-  // }
+    // Create a validator that confirms that when we ask for the value associated with
+    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    Validation validation = new Validation();
+    // The `AGE_KEY` should be name of the key whose value is being validated.
+    // You can actually put whatever you want here, because it's only used in the generation
+    // of testing error reports, but using the actually key value will make those reports more informative.
+    Validator<Integer> validator = validation.validator(UserController.AGE_KEY, Integer.class, illegal_integer_string);
+    when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
 
-  // /**
-  //  * Test that if the user sends a request with an illegal value in
-  //  * the age field (i.e., too big of a number)
-  //  * we get a reasonable error code back.
-  //  */
-  // @Test
-  // void respondsAppropriatelyToTooLargeNumberAge() {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {"151"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class))
-  //       .thenReturn(Validator.create(Integer.class, "151", UserController.AGE_KEY));
+    // This should now throw a `ValidationException` because
+    // our request has an age that can't be parsed to a number.
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      userController.getUsers(ctx);
+    });
+    // This digs into the returned `ValidationException` to get the underlying `Exception` that caused
+    // the validation to fail:
+    //   - `exception.getErrors` returns a `Map` that maps keys (like `AGE_KEY`) to lists of validation errors for that key
+    //   - `.get(AGE_KEY)` returns a list of all the validation errors associated with `AGE_KEY`
+    //   - `.get(0)` assumes that the root cause is the first error in the list. In our case there is only one root cause,
+    //     so that's safe, but you might be careful about that assumption in other contexts.
+    //   - `.exception()` gets the actually `Exception` value that was the underlying cause
+    Exception exceptionCause = exception.getErrors().get(UserController.AGE_KEY).get(0).exception();
+    // The cause should have been a `NumberFormatException` (what is thrown when we try to parse "bad" as an integer).
+    assertEquals(NumberFormatException.class, exceptionCause.getClass());
+    // The message for that `NumberFOrmatException` should include the text it tried to parse as an integer,
+    // i.e., `"bad integer string"`.
+    assert(exceptionCause.getMessage().contains(illegal_integer_string));
+  }
 
-  //   // This should now throw a `ValidationException` because
-  //   // our request has an age that is larger than 150, which isn't allowed,
-  //   // but I don't yet know how to make the message be anything specific
-  //   assertThrows(ValidationException.class, () -> {
-  //     userController.getUsers(ctx);
-  //   });
-  // }
+  /**
+   * Test that if the user sends a request with an illegal value in
+   * the age field (i.e., too big of a number)
+   * we get a reasonable error code back.
+   */
+  @Test
+  void respondsAppropriatelyToTooLargeNumberAge() {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    String overly_large_age_string = "151";
+    queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {overly_large_age_string}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+    // `overly_large_age_string`.
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(overly_large_age_string);
 
-  // /**
-  //  * Test that if the user sends a request with an illegal value in
-  //  * the age field (i.e., too small of a number)
-  //  * we get a reasonable error code back.
-  //  */
-  // @Test
-  // void respondsAppropriatelyToTooSmallNumberAge() {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {"-1"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class))
-  //       .thenReturn(Validator.create(Integer.class, "-1", UserController.AGE_KEY));
+    // Create a validator that confirms that when we ask for the value associated with
+    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    Validation validation = new Validation();
+    // The `AGE_KEY` should be name of the key whose value is being validated.
+    // You can actually put whatever you want here, because it's only used in the generation
+    // of testing error reports, but using the actually key value will make those reports more informative.
+    Validator<Integer> validator = validation.validator(UserController.AGE_KEY, Integer.class, overly_large_age_string);
+    when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
 
-  //   // This should now throw a `ValidationException` because
-  //   // our request has an age that is smaller than 0, which isn't allowed,
-  //   // but I don't yet know how to make the message be anything specific
-  //   assertThrows(ValidationException.class, () -> {
-  //     userController.getUsers(ctx);
-  //   });
-  // }
+    // This should now throw a `ValidationException` because
+    // our request has an age that is larger than 150, which isn't allowed,
+    // but I don't yet know how to make the message be anything specific
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      userController.getUsers(ctx);
+    });
+    // This `ValidationException` was caused by a custom check, so we just get the message from the first
+    // error and confirm that it contains the problematic string, since that would be useful information
+    // for someone trying to debug a case where this validation fails.
+    String exceptionMessage = exception.getErrors().get(UserController.AGE_KEY).get(0).getMessage();
+    // The message should be the message from our code under test, which should include the text we
+    // tried to parse as an age, namely "151".
+    assert(exceptionMessage.contains(overly_large_age_string));
+  }
+
+  /**
+   * Test that if the user sends a request with an illegal value in
+   * the age field (i.e., too small of a number)
+   * we get a reasonable error code back.
+   */
+  @Test
+  void respondsAppropriatelyToTooSmallNumberAge() {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    String negative_age_string = "-1";
+    queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {negative_age_string}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
+    // `negative_age_string`.
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(negative_age_string);
+
+    // Create a validator that confirms that when we ask for the value associated with
+    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    Validation validation = new Validation();
+    // The `AGE_KEY` should be name of the key whose value is being validated.
+    // You can actually put whatever you want here, because it's only used in the generation
+    // of testing error reports, but using the actually key value will make those reports more informative.
+    Validator<Integer> validator = validation.validator(UserController.AGE_KEY, Integer.class, negative_age_string);
+    when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
+
+    // This should now throw a `ValidationException` because
+    // our request has an age that is larger than 150, which isn't allowed,
+    // but I don't yet know how to make the message be anything specific
+    ValidationException exception = assertThrows(ValidationException.class, () -> {
+      userController.getUsers(ctx);
+    });
+    // This `ValidationException` was caused by a custom check, so we just get the message from the first
+    // error and confirm that it contains the problematic string, since that would be useful information
+    // for someone trying to debug a case where this validation fails.
+    String exceptionMessage = exception.getErrors().get(UserController.AGE_KEY).get(0).getMessage();
+    // The message should be the message from our code under test, which should include the text we
+    // tried to parse as an age, namely "151".
+    assert(exceptionMessage.contains(negative_age_string));
+  }
 
   // @Test
   // void canGetUsersWithCompany() throws IOException {
