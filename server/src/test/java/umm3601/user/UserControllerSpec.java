@@ -523,41 +523,54 @@ class UserControllerSpec {
     }
   }
 
-  // @Test
-  // void getUsersByRole() throws IOException {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.ROLE_KEY, Arrays.asList(new String[] {"viewer"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParamAsClass(UserController.ROLE_KEY, String.class))
-  //       .thenReturn(Validator.create(String.class, "viewer", UserController.ROLE_KEY));
+  @Test
+  void getUsersByRole() throws IOException {
+    Map<String, List<String>> queryParams = new HashMap<>();
+    String role_string = "viewer";
+    queryParams.put(UserController.ROLE_KEY, Arrays.asList(new String[] {role_string}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
 
-  //   userController.getUsers(ctx);
+    // Create a validator that confirms that when we ask for the value associated with
+    // `ROLE_KEY` we get back a string that represents a legal role.
+    Validation validation = new Validation();
+    Validator<String> validator = validation.validator(UserController.ROLE_KEY, String.class, role_string);
+    when(ctx.queryParamAsClass(UserController.ROLE_KEY, String.class)).thenReturn(validator);
 
-  //   verify(ctx).json(userArrayListCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
-  //   assertEquals(2, userArrayListCaptor.getValue().size());
-  // }
+    userController.getUsers(ctx);
 
-  // @Test
-  // void getUsersByCompanyAndAge() throws IOException {
-  //   Map<String, List<String>> queryParams = new HashMap<>();
-  //   queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {"OHMNET"}));
-  //   queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {"37"}));
-  //   when(ctx.queryParamMap()).thenReturn(queryParams);
-  //   when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn("OHMNET");
-  //   when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class))
-  //       .thenReturn(Validator.create(Integer.class, "37", UserController.AGE_KEY));
+    verify(ctx).json(userArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+    assertEquals(2, userArrayListCaptor.getValue().size());
+  }
 
-  //   userController.getUsers(ctx);
+  @Test
+  void getUsersByCompanyAndAge() throws IOException {
+    String target_company_string = "OHMNET";
+    String target_age_string = "37";
 
-  //   verify(ctx).json(userArrayListCaptor.capture());
-  //   verify(ctx).status(HttpStatus.OK);
-  //   assertEquals(1, userArrayListCaptor.getValue().size());
-  //   for (User user : userArrayListCaptor.getValue()) {
-  //     assertEquals("OHMNET", user.company);
-  //     assertEquals(37, user.age);
-  //   }
-  // }
+    Map<String, List<String>> queryParams = new HashMap<>();
+    queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {target_company_string}));
+    queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {target_age_string}));
+    when(ctx.queryParamMap()).thenReturn(queryParams);
+    when(ctx.queryParam(UserController.COMPANY_KEY)).thenReturn(target_company_string);
+
+    // Create a validator that confirms that when we ask for the value associated with
+    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    Validation validation = new Validation();
+    Validator<Integer> validator = validation.validator(UserController.AGE_KEY, Integer.class, target_age_string);
+    when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
+    when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(target_age_string);
+
+    userController.getUsers(ctx);
+
+    verify(ctx).json(userArrayListCaptor.capture());
+    verify(ctx).status(HttpStatus.OK);
+    assertEquals(1, userArrayListCaptor.getValue().size());
+    for (User user : userArrayListCaptor.getValue()) {
+      assertEquals(target_company_string, user.company);
+      assertEquals(37, user.age);
+    }
+  }
 
   @Test
   void getUserWithExistentId() throws IOException {
