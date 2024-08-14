@@ -115,7 +115,7 @@ public class Server {
      * and  port you're actually using, if they are different.)
      */
     Javalin server = Javalin.create(config ->
-      config.plugins.register(new RouteOverviewPlugin("/api"))
+      config.bundledPlugins.enableRouteOverview("/api")
     );
 
     // Configure the MongoDB client and the Javalin server to shut down gracefully.
