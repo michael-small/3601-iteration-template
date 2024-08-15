@@ -380,7 +380,7 @@ class UserControllerSpec {
     when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(illegalIntegerString);
 
     // Create a validator that confirms that when we ask for the value associated with
-    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    // `AGE_KEY` _as an integer_, we get back the `illegalIntegerString`.
     Validation validation = new Validation();
     // The `AGE_KEY` should be name of the key whose value is being validated.
     // You can actually put whatever you want here, because it's only used in the generation
@@ -465,7 +465,7 @@ class UserControllerSpec {
     when(ctx.queryParam(UserController.AGE_KEY)).thenReturn(negativeAgeString);
 
     // Create a validator that confirms that when we ask for the value associated with
-    // `AGE_KEY` _as an integer_, we get back the integer value 37.
+    // `AGE_KEY` _as an integer_, we get back the string value `negativeAgeString`.
     Validation validation = new Validation();
     // The `AGE_KEY` should be name of the key whose value is being validated.
     // You can actually put whatever you want here, because it's only used in the generation
@@ -474,7 +474,7 @@ class UserControllerSpec {
     when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
 
     // This should now throw a `ValidationException` because
-    // our request has an age that is larger than 150, which isn't allowed,
+    // our request has an age that is smaller than 1, which isn't allowed,
     // but I don't yet know how to make the message be anything specific
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.getUsers(ctx);
@@ -484,7 +484,7 @@ class UserControllerSpec {
     // for someone trying to debug a case where this validation fails.
     String exceptionMessage = exception.getErrors().get(UserController.AGE_KEY).get(0).getMessage();
     // The message should be the message from our code under test, which should include the text we
-    // tried to parse as an age, namely "151".
+    // tried to parse as an age, namely "-1".
     assertTrue(exceptionMessage.contains(negativeAgeString));
   }
 
@@ -814,7 +814,7 @@ class UserControllerSpec {
   @Test
   void addInvalidAgeUser() throws IOException {
     // Create a new user JSON string to add.
-    // Note that it has an invalid string for the age.
+    // Note that it has a string for the age that can't be parsed to a number.
     String newUserJson = """
       {
         "name": "Test User",
@@ -913,7 +913,7 @@ class UserControllerSpec {
   }
 
   @Test
-  void addNullNameUser() throws IOException {
+  void addUserWithoutName() throws IOException {
     String newUserJson = """
         {
           "age": 25,
@@ -929,7 +929,7 @@ class UserControllerSpec {
                         () -> javalinJackson.fromJsonString(newUserJson, User.class)));
 
     // This should now throw a `ValidationException` because
-    // the JSON for our new user has an invalid email address.
+    // the JSON for our new user has no name.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.addNewUser(ctx);
     });
@@ -973,7 +973,7 @@ class UserControllerSpec {
     String exceptionMessage = exception.getErrors().get("REQUEST_BODY").get(0).toString();
 
     // The message should be the message from our code under test, which should also include some text
-    // indicating that there was a missing user name.
+    // indicating that there was an empty string for the user name.
     assertTrue(exceptionMessage.contains("non-empty user name"));
   }
 
@@ -995,7 +995,7 @@ class UserControllerSpec {
                         () -> javalinJackson.fromJsonString(newUserJson, User.class)));
 
     // This should now throw a `ValidationException` because
-    // the JSON for our new user has an invalid email address.
+    // the JSON for our new user has an invalid user role.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.addNewUser(ctx);
     });
@@ -1011,7 +1011,7 @@ class UserControllerSpec {
   }
 
   @Test
-  void addNullCompanyUser() throws IOException {
+  void addUserWithoutCompany() throws IOException {
     String newUserJson = """
         {
           "name": "Test User",
@@ -1027,7 +1027,7 @@ class UserControllerSpec {
                         () -> javalinJackson.fromJsonString(newUserJson, User.class)));
 
     // This should now throw a `ValidationException` because
-    // the JSON for our new user has an invalid email address.
+    // the JSON for our new user has no company.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.addNewUser(ctx);
     });
@@ -1043,7 +1043,7 @@ class UserControllerSpec {
   }
 
   @Test
-  void addEmptyCompanyAndUser() throws IOException {
+  void addUserWithNeitherCompanyNorName() throws IOException {
     String newUserJson = """
         {
           "name": "",
@@ -1065,7 +1065,7 @@ class UserControllerSpec {
       userController.addNewUser(ctx);
     });
     // We should have _two_ errors here both of type `REQUEST_BODY`. The first should be for the
-    // empty name and the second for the empty company.
+    // missing name and the second for the missing company.
     List<ValidationError<Object>> errors = exception.getErrors().get("REQUEST_BODY");
 
     // Check the user name error
