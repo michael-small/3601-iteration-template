@@ -257,12 +257,15 @@ class UserControllerSpec {
    */
   @Test
   void canGetUsersWithAge37() throws IOException {
-    // Add a query param map to the context that maps "age" to "37".
-    String targetAgeString = "37";
+    // We'll need both `String` and `Integer` representations of
+    // the target age, so I'm defining both here.
+    Integer targetAge = 37;
+    String targetAgeString = targetAge.toString();
 
     // Create a `Map` for the `queryParams` that will "return" the string
     // "37" if you ask for the value associated with the `AGE_KEY`.
     Map<String, List<String>> queryParams = new HashMap<>();
+
     queryParams.put(UserController.AGE_KEY, Arrays.asList(new String[] {targetAgeString}));
     // When the code being tested calls `ctx.queryParamMap()` return the
     // the `queryParams` map we just built.
@@ -295,7 +298,7 @@ class UserControllerSpec {
     assertEquals(2, userArrayListCaptor.getValue().size());
     // Confirm that both users have age 37.
     for (User user : userArrayListCaptor.getValue()) {
-      assertEquals(37, user.age);
+      assertEquals(targetAge, user.age);
     }
     // Generate a list of the names of the returned users.
     List<String> names = userArrayListCaptor.getValue().stream().map(user -> user.name).collect(Collectors.toList());
@@ -326,9 +329,13 @@ class UserControllerSpec {
    */
   @Test
   void canGetUsersWithAge37Redux() throws JsonMappingException, JsonProcessingException {
+    // We'll need both `String` and `Integer` representations of
+    // the target age, so I'm defining both here.
+    Integer targetAge = 37;
+    String targetAgeString = targetAge.toString();
+
     // When the controller calls `ctx.queryParamMap`, return the expected map for an
     // "?age=37" query.
-    String targetAgeString = "37";
     when(ctx.queryParamMap()).thenReturn(Map.of(UserController.AGE_KEY, List.of(targetAgeString)));
     // When the code being tested calls `ctx.queryParam(AGE_KEY)` return the
     // `targetAgeString`.
@@ -356,7 +363,7 @@ class UserControllerSpec {
       @Override
       public boolean matches(List<User> users) {
         for (User user : users) {
-          assertEquals(37, user.age);
+          assertEquals(targetAge, user.age);
         }
         assertEquals(2, users.size());
         return true;
@@ -435,8 +442,7 @@ class UserControllerSpec {
     when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
 
     // This should now throw a `ValidationException` because
-    // our request has an age that is larger than 150, which isn't allowed,
-    // but I don't yet know how to make the message be anything specific
+    // our request has an age that is larger than 150, which isn't allowed.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.getUsers(ctx);
     });
@@ -474,8 +480,7 @@ class UserControllerSpec {
     when(ctx.queryParamAsClass(UserController.AGE_KEY, Integer.class)).thenReturn(validator);
 
     // This should now throw a `ValidationException` because
-    // our request has an age that is smaller than 1, which isn't allowed,
-    // but I don't yet know how to make the message be anything specific
+    // our request has an age that is larger than 150, which isn't allowed.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.getUsers(ctx);
     });
@@ -549,7 +554,8 @@ class UserControllerSpec {
   @Test
   void getUsersByCompanyAndAge() throws IOException {
     String targetCompanyString = "OHMNET";
-    String targetAgeString = "37";
+    Integer targetAge = 37;
+    String targetAgeString = targetAge.toString();
 
     Map<String, List<String>> queryParams = new HashMap<>();
     queryParams.put(UserController.COMPANY_KEY, Arrays.asList(new String[] {targetCompanyString}));
@@ -571,7 +577,7 @@ class UserControllerSpec {
     assertEquals(1, userArrayListCaptor.getValue().size());
     for (User user : userArrayListCaptor.getValue()) {
       assertEquals(targetCompanyString, user.company);
-      assertEquals(37, user.age);
+      assertEquals(targetAge, user.age);
     }
   }
 
@@ -778,7 +784,9 @@ class UserControllerSpec {
   @Test
   void addInvalidEmailUser() throws IOException {
     // Create a new user JSON string to add.
-    // Note that it has an invalid string for the email address.
+    // Note that it has an invalid string for the email address, which is
+    // why we're using a `String` here instead of a `User` object
+    // like we did in the previous tests.
     String newUserJson = """
       {
         "name": "Test User",
@@ -864,7 +872,7 @@ class UserControllerSpec {
                       () -> javalinJackson.fromJsonString(newUserJson, User.class)));
 
     // This should now throw a `ValidationException` because
-    // the JSON for our new user has an invalid email address.
+    // the JSON for our new user has an age that's too large.
     ValidationException exception = assertThrows(ValidationException.class, () -> {
       userController.addNewUser(ctx);
     });
