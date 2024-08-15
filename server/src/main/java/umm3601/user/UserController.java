@@ -130,8 +130,9 @@ public class UserController implements Controller {
 
     if (ctx.queryParamMap().containsKey(AGE_KEY)) {
       int targetAge = ctx.queryParamAsClass(AGE_KEY, Integer.class)
-        .check(it -> it > 0, "User's age must be greater than zero")
-        .check(it -> it < REASONABLE_AGE_LIMIT, "User's age must be less than " + REASONABLE_AGE_LIMIT)
+        .check(it -> it > 0, "User's age must be greater than zero; you provided " + ctx.queryParam(AGE_KEY))
+        .check(it -> it < REASONABLE_AGE_LIMIT,
+          "User's age must be less than " + REASONABLE_AGE_LIMIT + "; you provided " + ctx.queryParam(AGE_KEY))
         .get();
       filters.add(eq(AGE_KEY, targetAge));
     }
@@ -261,13 +262,20 @@ public class UserController implements Controller {
      * If any of these checks fail, the Javalin system will throw a
      * `BadRequestResponse` with an appropriate error message.
      */
+    String body = ctx.body();
     User newUser = ctx.bodyValidator(User.class)
-      .check(usr -> usr.name != null && usr.name.length() > 0, "User must have a non-empty user name")
-      .check(usr -> usr.email.matches(EMAIL_REGEX), "User must have a legal email")
-      .check(usr -> usr.age > 0, "User's age must be greater than zero")
-      .check(usr -> usr.age < REASONABLE_AGE_LIMIT, "User's age must be less than " + REASONABLE_AGE_LIMIT)
-      .check(usr -> usr.role.matches(ROLE_REGEX), "User must have a legal user role")
-      .check(usr -> usr.company != null && usr.company.length() > 0, "User must have a non-empty company name")
+      .check(usr -> usr.name != null && usr.name.length() > 0,
+        "User must have a non-empty user name; body was " + body)
+      .check(usr -> usr.email.matches(EMAIL_REGEX),
+        "User must have a legal email; body was " + body)
+      .check(usr -> usr.age > 0,
+        "User's age must be greater than zero; body was " + body)
+      .check(usr -> usr.age < REASONABLE_AGE_LIMIT,
+        "User's age must be less than " + REASONABLE_AGE_LIMIT + "; body was " + body)
+      .check(usr -> usr.role.matches(ROLE_REGEX),
+        "User must have a legal user role; body was " + body)
+      .check(usr -> usr.company != null && usr.company.length() > 0,
+        "User must have a non-empty company name; body was " + body)
       .get();
 
     // Generate a user avatar (you won't need this part for todos)
