@@ -126,7 +126,7 @@ describe('Add user', () => {
       cy.wait('@addUser');
 
       // We should get an error message
-      page.getSnackBar().should('contain', `Problem contacting the server – Error Code:`);
+      page.getSnackBar().should('contain', `Tried to add an illegal new user`);
 
       // We should have stayed on the new user page
       cy.url()

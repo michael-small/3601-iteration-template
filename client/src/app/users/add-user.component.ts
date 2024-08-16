@@ -127,11 +127,26 @@ export class AddUserComponent {
         this.router.navigate(['/users/', newId]);
       },
       error: err => {
-        this.snackBar.open(
-          `Problem contacting the server – Error Code: ${err.status}\nMessage: ${err.message}`,
-          'OK',
-          { duration: 5000 }
-        );
+        console.log(err);
+        if (err.status == 400) {
+          this.snackBar.open(
+            `Tried to add an illegal new user – Error Code: ${err.status}\nMessage: ${err.message}`,
+            'OK',
+            { duration: 5000 }
+          );
+        } else if (err.status == 500) {
+          this.snackBar.open(
+            `The server failed to process your request to add a new user. Is the server up? – Error Code: ${err.status}\nMessage: ${err.message}`,
+            'OK',
+            { duration: 5000 }
+          );
+        } else {
+          this.snackBar.open(
+            `An unexpected error occurred – Error Code: ${err.status}\nMessage: ${err.message}`,
+            'OK',
+            { duration: 5000 }
+          );
+        }
       },
     });
   }
