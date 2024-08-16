@@ -90,12 +90,15 @@ describe('Add user', () => {
         role: 'editor'
       };
 
+      cy.intercept('/api/users').as('addUser');
       page.addUser(user);
+      cy.wait('@addUser');
 
       // New URL should end in the 24 hex character Mongo ID of the newly added user
       cy.url()
         .should('match', /\/users\/[0-9a-fA-F]{24}$/)
         .should('not.match', /\/users\/new$/);
+
 
       // The new user should have all the same attributes as we entered
       cy.get('.user-card-name').should('have.text', user.name);
@@ -118,7 +121,9 @@ describe('Add user', () => {
         role: 'editor'
       };
 
+      cy.intercept('/api/users').as('addUser');
       page.addUser(user);
+      cy.wait('@addUser');
 
       // We should get an error message
       page.getSnackBar().should('contain', `Problem contacting the server – Error Code:`);
