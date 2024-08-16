@@ -90,6 +90,26 @@ describe('Add user', () => {
         role: 'editor'
       };
 
+      // The `page.addUser(user)` call ends with clicking the "Add User"
+      // button on the interface. That then leads to the client sending an
+      // HTTP request to server, which is has to process that request
+      // (including making calls to add the user to the database and wait
+      // for those to respond) before we get a response and can update the GUI.
+      // By calling `cy.intercept()` we're saying we want Cypress to "notice"
+      // when we go to `/api/users`. The `AddUserComponent.submitForm()` method
+      // routes to `/api/users/{MongoDB-ID}` if the REST request to add the user
+      // succeeds, and that routing will get "noticed" by the Cypress because
+      // of the `cy.intercept()` call.
+      //
+      // The `.as('addUser')` call basically gives that event a name (`addUser`)
+      // which we can use in things like `cy.wait()` to say which event or events
+      // we want to wait for.
+      //
+      // The `cy.wait('@addUser')` tells Cypress to wait until we have successfully
+      // routed to `/api/users` before we continue with the following checks. This
+      // hopefully ensures that the server (and database) have completed all their
+      // work, and that we should have a properly formed page on the client end
+      // to check.
       cy.intercept('/api/users').as('addUser');
       page.addUser(user);
       cy.wait('@addUser');
