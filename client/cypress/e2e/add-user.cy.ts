@@ -149,7 +149,7 @@ describe('Add user', () => {
       page.addUser(user);
 
       // We should get an error message
-      page.getSnackBar().should('contain', `Tried to add an illegal new user`);
+      page.getSnackBar().should('contain', 'Tried to add an illegal new user');
 
       // We should have stayed on the new user page
       cy.url()
