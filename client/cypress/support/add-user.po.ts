@@ -37,7 +37,11 @@ export class AddUserPage {
   }
 
   getSnackBar() {
-    return cy.get(this.snackBar);
+    // Since snackbars are often shown in response to errors,
+    // we'll add a timeout of 10 seconds to help increase the likelihood that
+    // the snackbar becomes visible before we might fail because it
+    // hasn't (yet) appeared.
+    return cy.get(this.snackBar, { timeout: 10000 });
   }
 
   addUser(newUser: User) {
