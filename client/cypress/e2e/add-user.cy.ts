@@ -121,9 +121,12 @@ describe('Add user', () => {
         role: 'editor'
       };
 
-      cy.intercept('/api/users').as('addUser');
+      // Here's we're _not_ expecting to route to `/api/users` since adding this
+      // user should fail. So we don't add `cy.intercept()` and `cy.wait()` calls
+      // around this `page.addUser(user)` call. If we _did_ add them, the test wouldn't
+      // actually fail because a `cy.wait()` that times out isn't considered a failure,
+      // although we could catch the timeout and turn it into a failure if we needed to.
       page.addUser(user);
-      cy.wait('@addUser');
 
       // We should get an error message
       page.getSnackBar().should('contain', `Tried to add an illegal new user`);
