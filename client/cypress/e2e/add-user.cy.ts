@@ -92,7 +92,7 @@ describe('Add user', () => {
 
       // The `page.addUser(user)` call ends with clicking the "Add User"
       // button on the interface. That then leads to the client sending an
-      // HTTP request to server, which is has to process that request
+      // HTTP request to the server, which has to process that request
       // (including making calls to add the user to the database and wait
       // for those to respond) before we get a response and can update the GUI.
       // By calling `cy.intercept()` we're saying we want Cypress to "notice"
@@ -141,7 +141,7 @@ describe('Add user', () => {
         role: 'editor'
       };
 
-      // Here's we're _not_ expecting to route to `/api/users` since adding this
+      // Here we're _not_ expecting to route to `/api/users` since adding this
       // user should fail. So we don't add `cy.intercept()` and `cy.wait()` calls
       // around this `page.addUser(user)` call. If we _did_ add them, the test wouldn't
       // actually fail because a `cy.wait()` that times out isn't considered a failure,
