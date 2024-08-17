@@ -120,6 +120,6 @@ export class UserService {
   addUser(newUser: Partial<User>): Observable<string> {
     // Send post request to add a new user with the user data as the body.
     // `res.id` should be the MongoDB ID of the newly added `User`.
-    return this.httpClient.post<{id: string}>(this.userUrl, newUser).pipe(map(res => res.id));
+    return this.httpClient.post<{id: string}>(this.userUrl, newUser).pipe(map(response => response.id));
   }
 }
