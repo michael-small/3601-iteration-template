@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,11 +12,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { BehaviorSubject, catchError, combineLatest, filter, map, of, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 import { User, UserRole } from './user';
 import { UserCardComponent } from './user-card.component';
 import { UserService } from './user.service';
 import { AsyncPipe } from '@angular/common';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 /**
  * A component that displays a list of users, either as a grid
@@ -36,14 +37,13 @@ import { AsyncPipe } from '@angular/common';
     standalone: true,
     imports: [AsyncPipe, MatCardModule, MatFormFieldModule, MatInputModule, FormsModule, MatSelectModule, MatOptionModule, MatRadioModule, UserCardComponent, MatListModule, RouterLink, MatButtonModule, MatTooltipModule, MatIconModule]
 })
-
 export class UserListComponent {
-    public userName$ = new BehaviorSubject<string | undefined>(undefined)
-    public userAge$ = new BehaviorSubject<number | undefined>(undefined)
-    public userRole$ = new BehaviorSubject<UserRole | undefined>(undefined)
-    public userCompany$ = new BehaviorSubject<string | undefined>(undefined)
+    $userName = signal<string | undefined>(undefined)
+    $userAge = signal<number | undefined>(undefined)
+    $userRole = signal<UserRole | undefined>(undefined)
+    $userCompany = signal<string | undefined>(undefined)
 
-    public $viewType = signal<'card' | 'list'>('card');
+    $viewType = signal<'card' | 'list'>('card');
 
     $errMsg = signal<string | undefined>(undefined);
 
@@ -60,7 +60,14 @@ export class UserListComponent {
     }
 
 
-    serverFilteredUsers$ = combineLatest([this.userRole$, this.userAge$]).pipe(
+    // Observable stuff needs observables to react to - just `toObservable` what is needed
+    userRole$ = toObservable(this.$userRole)
+    userAge$ = toObservable(this.$userAge)
+
+    // We ultimately `toSignal` this to be able to access it synchronously, but we do all the RXJS operations internally
+    //     Once there is a value for both the role and age, the latest values will move onto the switchMap
+    $serverFilteredUsers = toSignal(combineLatest([this.userRole$, this.userAge$]).pipe(
+        // You are now switching into another observable and mapping the previous values into the new one's args
         switchMap(([role, age]) => this.userService.getUsers({
             role,
             age
@@ -76,17 +83,22 @@ export class UserListComponent {
                     this.$errMsg(),
                     'OK',
                     { duration: 6000 });
+                // `catchError` needs to return the same type. `of` makes an observable of the same type, and makes the array still empty
                 return of<User[]>([])
             }),
+            // Tap does side effects
             tap(() => {
                 console.log('Users were filtered on the server')
             })
-        )
+        ))
 
-
-    filteredUsers$ = combineLatest([this.serverFilteredUsers$, this.userName$, this.userCompany$]).pipe(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        filter(([serverFilteredUsers, userName, userCompany]) => serverFilteredUsers.length > 0),
-        map(([serverFilteredUsers, userName, userCompany]) => this.userService.filterUsers(serverFilteredUsers, { name: userName, company: userCompany }))
-    )
+    // No need for fancy RXJS stuff. We do fancy RXJS stuff in one spot then `toSignal` it.
+    $filteredUsers = computed(() => {
+        const serverFilteredUsers = this.$serverFilteredUsers()
+        if (serverFilteredUsers.length > 0) {
+            return this.userService.filterUsers(serverFilteredUsers, { name: this.$userName(), company: this.$userCompany() })
+        } else {
+            return [];
+        }
+    })
 }
