@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,10 +12,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
 import { User, UserRole } from './user';
 import { UserCardComponent } from './user-card.component';
 import { UserService } from './user.service';
+import { AddUserComponent } from "./add-user.component";
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 /**
  * A component that displays a list of users, either as a grid
@@ -33,10 +34,10 @@ import { UserService } from './user.service';
     styleUrls: ['./user-list.component.scss'],
     providers: [],
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, MatInputModule, FormsModule, MatSelectModule, MatOptionModule, MatRadioModule, UserCardComponent, MatListModule, RouterLink, MatButtonModule, MatTooltipModule, MatIconModule]
+    imports: [MatCardModule, MatFormFieldModule, MatInputModule, FormsModule, MatSelectModule, MatOptionModule, MatRadioModule, UserCardComponent, MatListModule, RouterLink, MatButtonModule, MatTooltipModule, MatIconModule, AddUserComponent]
 })
 
-export class UserListComponent implements OnInit, OnDestroy  {
+export class UserListComponent implements OnInit {
   // These are public so that tests can reference them (.spec.ts)
   public serverFilteredUsers: User[];
   public filteredUsers: User[];
@@ -48,8 +49,6 @@ export class UserListComponent implements OnInit, OnDestroy  {
   public viewType: 'card' | 'list' = 'card';
 
   errMsg = '';
-  private ngUnsubscribe = new Subject<void>();
-
 
   /**
    * This constructor injects both an instance of `UserService`
@@ -59,7 +58,7 @@ export class UserListComponent implements OnInit, OnDestroy  {
    * @param userService the `UserService` used to get users from the server
    * @param snackBar the `MatSnackBar` used to display feedback
    */
-  constructor(private userService: UserService, private snackBar: MatSnackBar) {
+  constructor(private userService: UserService, private snackBar: MatSnackBar, private destroyRef: DestroyRef) {
     // Nothing here – everything is in the injection parameters.
   }
 
@@ -76,7 +75,7 @@ export class UserListComponent implements OnInit, OnDestroy  {
       role: this.userRole,
       age: this.userAge
     }).pipe(
-      takeUntil(this.ngUnsubscribe)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       // Next time we see a change in the Observable<User[]>,
       // refer to that User[] as returnedUsers here and do the steps in the {}
@@ -84,7 +83,7 @@ export class UserListComponent implements OnInit, OnDestroy  {
         // First, update the array of serverFilteredUsers to be the User[] in the observable
         this.serverFilteredUsers = returnedUsers;
         // Then update the filters for our client-side filtering as described in this method
-        this.updateFilter();
+        this.filteredUsers =  this.updateFilter();
       },
       // If we observe an error in that Observable, put that message in a snackbar so we can learn more
       error: (err) => {
@@ -108,9 +107,8 @@ export class UserListComponent implements OnInit, OnDestroy  {
    * Called when the filtering information is changed in the GUI so we can
    * get an updated list of `filteredUsers`.
    */
-  public updateFilter(): void {
-    this.filteredUsers = this.userService.filterUsers(
-      this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
+  public updateFilter(): User[] {
+     return this.userService.filterUsers(this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
   }
 
   /**
@@ -120,14 +118,4 @@ export class UserListComponent implements OnInit, OnDestroy  {
   ngOnInit(): void {
     this.getUsersFromServer();
   }
-
-  /**
-   * When this component is destroyed, we should unsubscribe to any
-   * outstanding requests.
-   */
-  ngOnDestroy() {
-    this.ngUnsubscribe.next();
-    this.ngUnsubscribe.complete();
-  }
-
 }
