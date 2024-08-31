@@ -12,9 +12,7 @@ import { Company } from './company';
   styleUrl: './company-list.component.scss'
 })
 export class CompanyListComponent {
-  companies: Signal<Company[]>;
+  companies: Signal<Company[]> = toSignal(this.userService.getCompanies());
 
-  constructor(private userService: UserService) {
-    this.companies = toSignal(this.userService.getCompanies());
-  }
+  constructor(private userService: UserService) {}
 }
