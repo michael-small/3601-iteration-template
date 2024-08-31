@@ -1,12 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, DestroyRef, OnInit } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, ParamMap } from '@angular/router';
-import { Subject } from 'rxjs';
-import { map, switchMap, takeUntil } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { User } from './user';
 import { UserCardComponent } from './user-card.component';
 import { UserService } from './user.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'app-user-profile',
@@ -15,7 +15,7 @@ import { UserService } from './user.service';
     standalone: true,
     imports: [UserCardComponent, MatCardModule]
 })
-export class UserProfileComponent implements OnInit, OnDestroy {
+export class UserProfileComponent implements OnInit {
   user: User;
   error: { help: string, httpResponse: string, message: string };
 
@@ -23,9 +23,8 @@ export class UserProfileComponent implements OnInit, OnDestroy {
   // `ngOnDestroy()` is called, i.e., when this component is
   // destroyed. That can be used ot tell any subscriptions to
   // terminate, allowing the system to free up their resources (like memory).
-  private ngUnsubscribe = new Subject<void>();
 
-  constructor(private snackBar: MatSnackBar, private route: ActivatedRoute, private userService: UserService) { }
+  constructor(private snackBar: MatSnackBar, private route: ActivatedRoute, private userService: UserService, private destroyRef: DestroyRef) { }
 
   ngOnInit(): void {
     // The `map`, `switchMap`, and `takeUntil` are all RXJS operators, and
@@ -48,11 +47,10 @@ export class UserProfileComponent implements OnInit, OnDestroy {
       // which will emit zero or one values depending on whether there is a
       // `User` with that ID.
       switchMap((id: string) => this.userService.getUserById(id)),
-      // Allow the pipeline to continue to emit values until `this.ngUnsubscribe`
-      // returns a value, which only happens when this component is destroyed.
+      // Allow the pipeline to continue to emit values until the component is destroyed
       // At that point we shut down the pipeline, allowed any
       // associated resources (like memory) are cleaned up.
-      takeUntil(this.ngUnsubscribe)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe({
       next: user => {
         this.user = user;
@@ -73,16 +71,5 @@ export class UserProfileComponent implements OnInit, OnDestroy {
        */
       // complete: () => console.log('We got a new user, and we are done!'),
     });
-  }
-
-  ngOnDestroy() {
-    // When the component is destroyed, we'll emit an empty
-    // value as a way of saying that any active subscriptions should
-    // shut themselves down so the system can free up any associated
-    // resources, like memory.
-    this.ngUnsubscribe.next();
-    // Calling `complete()` says that this `Subject` is done and will
-    // never send any further values.
-    this.ngUnsubscribe.complete();
   }
 }
