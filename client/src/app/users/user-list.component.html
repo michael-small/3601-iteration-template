@@ -86,7 +86,7 @@
                       <h3 mat-subheader>Users</h3>
                       @for (user of filteredUsers(); track user._id) {
                         <a mat-list-item [routerLink]="['/users', user._id]" class="user-list-item">
-                          @if (this.user.avatar) {
+                          @if (user.avatar) {
                             <img matListItemAvatar [src]="user.avatar" alt="Avatar for {{ user.name }}">
                           }
                           <span matListItemTitle mat-line class="user-list-name"> {{user.name}} </span>
