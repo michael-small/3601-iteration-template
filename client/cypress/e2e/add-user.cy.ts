@@ -37,7 +37,11 @@ describe('Add user', () => {
     // Some more tests for various invalid name inputs
     page.getFormField('name').type('J').blur();
     cy.get('[data-test=nameError]').should('exist').and('be.visible');
-    page.getFormField('name').clear().type('This is a very long name that goes beyond the 50 character limit').blur();
+    page
+      .getFormField('name')
+      .clear()
+      .type('This is a very long name that goes beyond the 50 character limit')
+      .blur();
     cy.get('[data-test=nameError]').should('exist').and('be.visible');
     // Entering a valid name should remove the error.
     page.getFormField('name').clear().type('John Smith').blur();
@@ -75,7 +79,6 @@ describe('Add user', () => {
   });
 
   describe('Adding a new user', () => {
-
     beforeEach(() => {
       cy.task('seed:database');
     });
@@ -87,7 +90,7 @@ describe('Add user', () => {
         age: 30,
         company: 'Test Company',
         email: 'test@example.com',
-        role: 'editor'
+        role: 'editor',
       };
 
       // The `page.addUser(user)` call ends with clicking the "Add User"
@@ -114,11 +117,13 @@ describe('Add user', () => {
       page.addUser(user);
       cy.wait('@addUser');
 
-      // New URL should end in the 24 hex character Mongo ID of the newly added user
-      cy.url()
+      // New URL should end in the 24 hex character Mongo ID of the newly added user.
+      // We'll wait up to 10 seconds for this these `should()` assertions to succeed.
+      // Hopefully that long timeout will help ensure that our Cypress tests pass in
+      // GitHub Actions, where we're often running on slow VMs.
+      cy.url({ timeout: 10000 })
         .should('match', /\/users\/[0-9a-fA-F]{24}$/)
         .should('not.match', /\/users\/new$/);
-
 
       // The new user should have all the same attributes as we entered
       cy.get('.user-card-name').should('have.text', user.name);
@@ -138,7 +143,7 @@ describe('Add user', () => {
         age: 30,
         company: null, // The company being set to null means nothing will be typed for it
         email: 'test@example.com',
-        role: 'editor'
+        role: 'editor',
       };
 
       // Here we're _not_ expecting to route to `/api/users` since adding this
@@ -163,5 +168,4 @@ describe('Add user', () => {
       page.getFormField('role').should('contain', 'Editor');
     });
   });
-
 });
