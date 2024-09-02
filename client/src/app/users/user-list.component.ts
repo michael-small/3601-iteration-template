@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit } from '@angular/core';
+import { Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -12,11 +12,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
+import { catchError, combineLatest, of, switchMap, tap } from 'rxjs';
 import { User, UserRole } from './user';
 import { UserCardComponent } from './user-card.component';
 import { UserService } from './user.service';
-import { AddUserComponent } from "./add-user.component";
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AsyncPipe } from '@angular/common';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 
 /**
  * A component that displays a list of users, either as a grid
@@ -34,89 +35,69 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
     styleUrls: ['./user-list.component.scss'],
     providers: [],
     standalone: true,
-    imports: [MatCardModule, MatFormFieldModule, MatInputModule, FormsModule, MatSelectModule, MatOptionModule, MatRadioModule, UserCardComponent, MatListModule, RouterLink, MatButtonModule, MatTooltipModule, MatIconModule, AddUserComponent]
+    imports: [AsyncPipe, MatCardModule, MatFormFieldModule, MatInputModule, FormsModule, MatSelectModule, MatOptionModule, MatRadioModule, UserCardComponent, MatListModule, RouterLink, MatButtonModule, MatTooltipModule, MatIconModule]
 })
+export class UserListComponent {
+    userName = signal<string | undefined>(undefined)
+    userAge = signal<number | undefined>(undefined)
+    userRole = signal<UserRole | undefined>(undefined)
+    userCompany = signal<string | undefined>(undefined)
 
-export class UserListComponent implements OnInit {
-  // These are public so that tests can reference them (.spec.ts)
-  public serverFilteredUsers: User[];
-  public filteredUsers: User[];
+    viewType = signal<'card' | 'list'>('card');
 
-  public userName: string;
-  public userAge: number;
-  public userRole: UserRole;
-  public userCompany: string;
-  public viewType: 'card' | 'list' = 'card';
+    errMsg = signal<string | undefined>(undefined);
 
-  errMsg = '';
+    /**
+     * This constructor injects both an instance of `UserService`
+     * and an instance of `MatSnackBar` into this component.
+     * `UserService` lets us interact with the server.
+     *
+     * @param userService the `UserService` used to get users from the server
+     * @param snackBar the `MatSnackBar` used to display feedback
+     */
+    constructor(private userService: UserService, private snackBar: MatSnackBar) {
+        // Nothing here – everything is in the injection parameters.
+    }
 
-  /**
-   * This constructor injects both an instance of `UserService`
-   * and an instance of `MatSnackBar` into this component.
-   * `UserService` lets us interact with the server.
-   *
-   * @param userService the `UserService` used to get users from the server
-   * @param snackBar the `MatSnackBar` used to display feedback
-   */
-  constructor(private userService: UserService, private snackBar: MatSnackBar, private destroyRef: DestroyRef) {
-    // Nothing here – everything is in the injection parameters.
-  }
+    // Observable stuff needs observables to react to - just `toObservable` what is needed
+    private userRole$ = toObservable(this.userRole)
+    private userAge$ = toObservable(this.userAge)
 
-  /**
-   * Get the users from the server, filtered by the role and age specified
-   * in the GUI.
-   */
-  getUsersFromServer(): void {
-    // A user-list-component is paying attention to userService.getUsers
-    // (which is an Observable<User[]>)
-    // (for more on Observable, see: https://reactivex.io/documentation/observable.html)
-    // and we are specifically watching for role and age whenever the User[] gets updated
-    this.userService.getUsers({
-      role: this.userRole,
-      age: this.userAge
-    }).pipe(
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe({
-      // Next time we see a change in the Observable<User[]>,
-      // refer to that User[] as returnedUsers here and do the steps in the {}
-      next: (returnedUsers) => {
-        // First, update the array of serverFilteredUsers to be the User[] in the observable
-        this.serverFilteredUsers = returnedUsers;
-        // Then update the filters for our client-side filtering as described in this method
-        this.filteredUsers =  this.updateFilter();
-      },
-      // If we observe an error in that Observable, put that message in a snackbar so we can learn more
-      error: (err) => {
-        if (err.error instanceof ErrorEvent) {
-          this.errMsg = `Problem in the client – Error: ${err.error.message}`;
+    // We ultimately `toSignal` this to be able to access it synchronously, but we do all the RXJS operations internally
+    //     Once there is a value for both the role and age, the latest values will move onto the switchMap
+    serverFilteredUsers = toSignal(combineLatest([this.userRole$, this.userAge$]).pipe(
+        // You are now switching into another observable and mapping the previous values into the new one's args
+        switchMap(([role, age]) => this.userService.getUsers({
+            role,
+            age
+        })
+        )).pipe(
+            catchError((err) => {
+                if (err.error instanceof ErrorEvent) {
+                    this.errMsg.set(`Problem in the client – Error: ${err.error.message}`);
+                } else {
+                    this.errMsg.set( `Problem contacting the server – Error Code: ${err.status}\nMessage: ${err.message}`)
+                }
+                this.snackBar.open(
+                    this.errMsg(),
+                    'OK',
+                    { duration: 6000 });
+                // `catchError` needs to return the same type. `of` makes an observable of the same type, and makes the array still empty
+                return of<User[]>([])
+            }),
+            // Tap does side effects
+            tap(() => {
+                console.log('Users were filtered on the server')
+            })
+        ))
+
+    // No need for fancy RXJS stuff. We do fancy RXJS stuff in one spot then `toSignal` it.
+    filteredUsers = computed(() => {
+        const serverFilteredUsers = this.serverFilteredUsers()
+        if (serverFilteredUsers.length > 0) {
+            return this.userService.filterUsers(serverFilteredUsers, { name: this.userName(), company: this.userCompany() })
         } else {
-          this.errMsg = `Problem contacting the server – Error Code: ${err.status}\nMessage: ${err.message}`;
+            return [];
         }
-        this.snackBar.open(
-          this.errMsg,
-          'OK',
-          // The message will disappear after 6 seconds.
-          { duration: 6000 });
-      },
-      // Once the observable has completed successfully
-      // complete: () => console.log('Users were filtered on the server')
-    });
-  }
-
-  /**
-   * Called when the filtering information is changed in the GUI so we can
-   * get an updated list of `filteredUsers`.
-   */
-  public updateFilter(): User[] {
-    this.filteredUsers = this.userService.filterUsers(this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
-    return this.filteredUsers;
- }
-
-  /**
-   * Starts an asynchronous operation to update the users list
-   *
-   */
-  ngOnInit(): void {
-    this.getUsersFromServer();
-  }
+    })
 }
