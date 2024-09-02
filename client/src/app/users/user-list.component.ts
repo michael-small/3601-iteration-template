@@ -108,8 +108,9 @@ export class UserListComponent implements OnInit {
    * get an updated list of `filteredUsers`.
    */
   public updateFilter(): User[] {
-     return this.userService.filterUsers(this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
-  }
+    this.filteredUsers = this.userService.filterUsers(this.serverFilteredUsers, { name: this.userName, company: this.userCompany });
+    return this.filteredUsers;
+ }
 
   /**
    * Starts an asynchronous operation to update the users list
